@@ -17,10 +17,11 @@ Kurzreferenz, damit nicht jedes Mal erklärt werden muss, welche DevOps-Organisa
 
 ## Zugriff aus Claude-Code-Cloud-Sessions
 
-Die Cloud-Umgebung hat standardmässig nur GitHub-Zugriff. Für Azure DevOps braucht die Session einen **Personal Access Token (PAT)** als Umgebungs-Secret:
+Die Cloud-Umgebung hat standardmässig nur GitHub-Zugriff, kein Azure-DevOps-Credential. Zwei Wege:
 
-- Variablenname: `AZURE_DEVOPS_PAT`
-- Empfohlene Scopes: mindestens **Code (Read)**; für Uploads/Pushes **Code (Read & Write)**. Der PAT muss für beide Organisationen gelten (bei der PAT-Erstellung „All accessible organizations" wählen) oder es braucht je einen PAT pro Organisation.
-- Verwendung:
-  - REST API: `curl -u ":$AZURE_DEVOPS_PAT" "https://dev.azure.com/{org}/{project}/_apis/git/repositories?api-version=7.1"`
-  - Git-Clone: `git clone "https://pat:$AZURE_DEVOPS_PAT@dev.azure.com/{org}/{project}/_git/{repo}"`
+1. **Device-Code-Login (interaktiv, bevorzugt):** Claude startet den Microsoft-Device-Code-Flow (Client-ID der Azure CLI, Scope `499b84ac-1321-427f-aa17-267ca6975798/.default` = Azure-DevOps-Ressource), zeigt URL (https://microsoft.com/devicelogin) + Code an, der Benutzer loggt sich im Browser ein. Das Token gilt dann für die Session (~1 h, mit Refresh-Token verlängerbar).
+2. **PAT als Umgebungs-Secret (dauerhaft):** Variable `AZURE_DEVOPS_PAT` in den Umgebungseinstellungen hinterlegen (Scope: Code Read bzw. Read & Write, „All accessible organizations").
+
+Verwendung (Token oder PAT):
+- REST API: `curl -H "Authorization: Bearer $TOKEN" "https://dev.azure.com/{org}/{project}/_apis/git/repositories?api-version=7.1"` (bei PAT: `curl -u ":$PAT" ...`)
+- Git-Clone: `git clone "https://pat:$PAT@dev.azure.com/{org}/{project}/_git/{repo}"`
